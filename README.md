@@ -1,11 +1,3 @@
-![header image](assets/header.jpg)
-
-# ISYS2099 Database Application - Database Project - Group 9
-
-View assesment details [here](assets/Project_ISYS2099.pdf).
-
----
-
 ## Project Structure
 
 <pre>
@@ -163,12 +155,12 @@ Available on [YouTube](https://youtu.be/nmXr4WKHXf8).
 
 ## Contribution
 
-| SID      | Name                 | Score |
-|:---------|:---------------------|:-----:|
-| s3924826 | Tran Minh Nhat       |   5   |
-| s3864188 | Phan Thanh Loi       |   5   |
-| s3963207 | Do Le Long An        |   5   |
-| s3877562 | Vo Tuong Minh (Mike) |   5   |
+| SID      | Name                 | Role |
+|:---------|:---------------------|:--------------------:|
+| s3924826 | Tran Minh Nhat       |   Technical Writer   |
+| s3864188 | Phan Thanh Loi       |   Frontend Developer   |
+| s3963207 | Do Le Long An (Laans)        |   Backend Developer   |
+| s3877562 | Vo Tuong Minh (Mike) |   Database Admin   |
 
 
 ## Developer Tools
