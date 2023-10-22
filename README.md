@@ -172,3 +172,7 @@ Available on [YouTube](https://youtu.be/nmXr4WKHXf8).
 ![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
 ![MySQL Workbench](https://img.shields.io/badge/MySQL_Workbench-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![MongoDB Compass](https://img.shields.io/badge/MongoDB_Compass-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+
+# ***TODOs:***
+- Separate the FE and BE of the project and deploy it
+- Testing the concurrency control when multiple users are buying the same thing
