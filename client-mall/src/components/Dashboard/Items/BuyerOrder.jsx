@@ -62,7 +62,7 @@ const BuyerOrder = ({ data, compFunction }) => {
               className="position-relative"
               style={{ width: "200px", minWidth: "1050px" }}
             >
-              <span>ProductID</span>
+              <span>Product Title</span>
             </th>
 
             <th
@@ -115,16 +115,16 @@ const BuyerOrder = ({ data, compFunction }) => {
             return (
               <tr key={item.id}>
                 <th scope="row">{item.id}</th>
-                <td>{item.product_id}</td>
+                <td>{item.product_title}</td>
                 <td>{item.quantity}</td>
                 <td>
                   {item.order_status === "P"
                     ? "Pending"
                     : item.order_status === "A"
-                    ? "Accepted"
-                    : item.order_status === "R"
-                    ? "Rejected"
-                    : ""}
+                      ? "Accepted"
+                      : item.order_status === "R"
+                        ? "Rejected"
+                        : ""}
                 </td>
                 <td>{item.fulfilled_time}</td>
                 <td>{item.fulfilled_date}</td>
@@ -184,7 +184,7 @@ BuyerOrder.propTypes = {
   data: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
-      product_id: PropTypes.number.isRequired,
+      product_title: PropTypes.string.isRequired,
       quantity: PropTypes.number.isRequired,
       order_status: PropTypes.string.isRequired,
       created_time: PropTypes.string.isRequired,

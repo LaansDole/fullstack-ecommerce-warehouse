@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS product
 CREATE TABLE IF NOT EXISTS stockpile
 (
     product_id   INT,
+    product_title VARCHAR(45) NOT NULL,
     warehouse_id INT,
     quantity     INT NOT NULL,
     CONSTRAINT stockpile_pk PRIMARY KEY (product_id, warehouse_id),
