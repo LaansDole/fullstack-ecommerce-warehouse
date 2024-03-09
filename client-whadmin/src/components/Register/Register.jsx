@@ -13,9 +13,17 @@ const RegisterComponent = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const { username, password } = registerState;
 
-  // Functions
+  const normalCharRegex = /^[A-Za-z0-9._-]*$/;
+
   const handleChangeInput = e => {
     const { name, value } = e.target;
+
+    // Check if the input matches the allowed characters
+    if (!value.match(normalCharRegex)) {
+      toast.error("The username must not have strange characters");
+      return;
+    }
+
     setLoginState(prevState => ({ ...prevState, [name]: value }));
   };
 
