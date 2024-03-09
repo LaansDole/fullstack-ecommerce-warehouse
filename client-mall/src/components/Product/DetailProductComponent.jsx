@@ -41,15 +41,19 @@ const DetailProductComponent = () => {
   const { title, image, product_description, category, price } = detailProduct;
 
   const handleCreateOrder = async () => {
-    try {
-      const response = await postDataAPI(`buyer-order/create/${id}`, {
-        order_quantity: quantity,
-      });
-      if (response.status === 200 || response.status === 201) {
-        toast.success(response.data?.message);
+    if (quantity < 1) {
+      toast.error("Quantity must be more than 0");
+    } else {
+      try {
+        const response = await postDataAPI(`buyer-order/create/${id}`, {
+          order_quantity: quantity,
+        });
+        if (response.status === 200 || response.status === 201) {
+          toast.success(response.data?.message);
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.error);
       }
-    } catch (error) {
-      toast.error(error.response?.data?.error);
     }
   };
   return (
