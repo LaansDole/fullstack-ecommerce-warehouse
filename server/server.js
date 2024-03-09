@@ -32,6 +32,10 @@ app.use("/uploads", express.static(path.join(__dirname + "/uploads")));
 app.set("trust proxy", true);
 
 app.use(cookieParser());
+// parse application/json
+app.use(bodyParser.json());
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const SERVER_PORT = process.env.SERVER_PORT;
 const CORS_WHITELIST = [
@@ -40,10 +44,6 @@ const CORS_WHITELIST = [
   `http://localhost:${process.env.CLIENT_WHADMIN_PORT}`,
 ];
 
-// parse application/json
-app.use(bodyParser.json());
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: (origin, callback) => {

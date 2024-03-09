@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { postDataAPI } from "../../../../client-mall/src/api/apiRequest";
 import { toast } from "react-hot-toast";
 
 const RegisterComponent = () => {
+  const navigate = useNavigate();
   const initialState = {
     username: "",
     password: "",
@@ -30,6 +31,9 @@ const RegisterComponent = () => {
         });
         if (response.status === 200 || response.status === 201) {
           toast.success(`Register Successfully!`);
+          setTimeout(() => {
+            navigate('/');
+          }, 1000);
         }
       } catch (error) {
         toast.error(error.response?.data?.error);

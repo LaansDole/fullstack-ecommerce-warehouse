@@ -159,7 +159,7 @@ Available on [YouTube](https://youtu.be/nmXr4WKHXf8).
 |:---------|:---------------------|:--------------------:|
 | s3924826 | Tran Minh Nhat       |   Technical Writer   |
 | s3864188 | Phan Thanh Loi       |   Frontend Developer   |
-| s3963207 | Do Le Long An (Laans)        |   Backend Developer   |
+| s3963207 | Do Le Long An        |   Backend Developer   |
 | s3877562 | Vo Tuong Minh (Mike) |   Database Admin   |
 
 

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { postDataAPI } from "../../api/apiRequest";
 
 import { toast } from "react-hot-toast";
 
 const RegisterComponent = () => {
+  const navigate = useNavigate();
   const initialState = {
     username: "",
     password: "",
@@ -36,6 +37,10 @@ const RegisterComponent = () => {
           });
           if (response.status === 200 || response.status === 201) {
             toast.success(`Register Successfully!`);
+            // Redirect to the home page
+            setTimeout(() => {
+              navigate('/');
+            }, 1000);
           }
         } else if (roles === "seller") {
           const response = await postDataAPI("auth/register", {
@@ -46,6 +51,10 @@ const RegisterComponent = () => {
           });
           if (response.status === 200 || response.status === 201) {
             toast.success(`Register Successfully!`);
+            // Redirect to the home page
+            setTimeout(() => {
+              navigate('/');
+            }, 1000);
           }
         }
       } catch (error) {
