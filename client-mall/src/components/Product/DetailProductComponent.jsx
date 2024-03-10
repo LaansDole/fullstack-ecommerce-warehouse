@@ -55,7 +55,7 @@ const DetailProductComponent = () => {
           toast.success(response.data?.message);
           setTimeout(() => {
             window.location.reload();
-          }, 1000);
+          }, 500);
         }
       } catch (error) {
         toast.error(error.response?.data?.error);

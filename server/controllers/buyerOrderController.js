@@ -161,29 +161,69 @@ const getBuyerOrderByStatus = async (req, res) => {
   }
 };
 
+// PUT request for editting quantity of orders
 const updateBuyerOrderQuantity = async (req, res) => {
   try {
     let buyerOrderID = req.params.id;
     let { quantity } = req.body;
-    const [results] = await db.poolBuyer.query(
+
+    // Fetch the existing order
+    const [orderResults] = await db.poolBuyer.query(
       `
-            UPDATE buyer_order SET quantity = ? WHERE id = ?
+            SELECT * FROM buyer_order WHERE id = ?
         `,
-      [quantity, buyerOrderID],
+      [buyerOrderID],
     );
-    if (results.affectedRows === 0) {
+    if (orderResults.length === 0) {
       return res
         .status(404)
         .json({ error: `Buyer order with id: ${buyerOrderID} not found` });
     }
-    return res.json({
-      message: `Quantity of buyer order with id: ${buyerOrderID} updated successfully`,
+
+    const order = orderResults[0];
+    const buyer_username = order.buyer;
+    const order_product_id = order.product_id;
+
+    // Call the stored procedure to update the order
+    await db.poolBuyer.query("CALL sp_place_buyer_order(?, ?, ?, @result)", [
+      quantity,
+      order_product_id,
+      buyer_username,
+    ]);
+    const [[{ result: resultCode }]] = await db.poolBuyer.query(
+      "SELECT @result as result",
+    );
+    if (resultCode === 0) {
+      // Update the quantity in the buyer_order table
+      const [updateResults] = await db.poolBuyer.query(
+        `
+              UPDATE buyer_order SET quantity = ? WHERE id = ?
+          `,
+        [quantity, buyerOrderID],
+      );
+      return res
+        .status(200)
+        .json({ message: "Order updated successfully", result: resultCode });
+    } else if (resultCode === 1) {
+      return res
+        .status(400)
+        .json({ error: "Not enough stockpile", result: resultCode });
+    } else if (resultCode === 2) {
+      return res
+        .status(400)
+        .json({ error: "Product or buyer does not exist", result: resultCode });
+    }
+    return res.status(500).json({
+      error: "An error occurred while processing your request",
+      result: resultCode,
     });
   } catch (error) {
     console.error("error: " + error.stack);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
 
 const updateBuyerOrderStatusAccept = async (req, res) => {
   try {
