@@ -38,18 +38,40 @@ const getAllProductsDSC = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     let productID = req.params.id;
-    const [results] = await db.poolWHAdmin.query(
+    const [productResults] = await db.poolWHAdmin.query(
       `
             SELECT * FROM product where id = ?
         `,
       [productID],
     );
-    if (results.length === 0) {
+
+    if (productResults.length === 0) {
       return res
         .status(404)
         .json({ error: `Product with id: ${productID} not found` });
     }
-    return res.json(results);
+
+    const [stockpileResults] = await db.poolWHAdmin.query(
+      `
+          SELECT product.id, warehouse.warehouse_name, stockpile.quantity
+          FROM product
+          JOIN stockpile ON product.id = stockpile.product_id
+          JOIN warehouse ON stockpile.warehouse_id = warehouse.id
+          WHERE product.id = ?;
+        `,
+      [productID],
+    );
+
+    if (stockpileResults.length === 0) {
+      return res
+        .status(404)
+        .json({ error: `Stockpile for product with id: ${productID} not found` });
+    }
+
+    return res.json({
+      product: productResults[0],
+      stockpile: stockpileResults,
+    });
   } catch (error) {
     console.error("error: " + error.stack);
     return res.status(500).json({ error: "Internal server error" });

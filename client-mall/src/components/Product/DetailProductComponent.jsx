@@ -25,12 +25,15 @@ const DetailProductComponent = () => {
   };
   const [detailProduct, setDetailProduct] = useState(initialState);
   const [quantity, setQuantity] = useState(0);
+  const [stockpile, setStockpile] = useState([]);
+
   useEffect(() => {
     const fetchDetailProduct = async () => {
       try {
         const response = await getDataAPI(`product/${id}`);
+        setDetailProduct(response?.data.product);
+        setStockpile(response?.data.stockpile);
 
-        setDetailProduct(response?.data[0]);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
@@ -84,6 +87,13 @@ const DetailProductComponent = () => {
             <div className="">
               <span>Category: {category}</span>
             </div>
+            <hr />
+            {stockpile.map((instock, index) => (
+              <div key={index}>
+                <p>Warehouse Name: {instock.warehouse_name}</p>
+                <p>Instock: {instock.quantity}</p>
+              </div>
+            ))}
             <hr />
             <div className="">
               <small>Price: </small>
