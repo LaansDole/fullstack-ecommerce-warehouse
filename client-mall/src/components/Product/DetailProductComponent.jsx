@@ -53,6 +53,9 @@ const DetailProductComponent = () => {
         });
         if (response.status === 200 || response.status === 201) {
           toast.success(response.data?.message);
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         }
       } catch (error) {
         toast.error(error.response?.data?.error);
@@ -84,9 +87,6 @@ const DetailProductComponent = () => {
               <h4 className="fw-bold">{title}</h4>
               <p>{product_description}</p>
             </div>
-            <div className="">
-              <span>Category: {category}</span>
-            </div>
             <hr />
             {stockpile.map((instock, index) => (
               <div key={index}>
@@ -95,55 +95,65 @@ const DetailProductComponent = () => {
               </div>
             ))}
             <hr />
-            <div className="">
-              <small>Price: </small>
-              <h5>$ {price}</h5>
-            </div>
-            <hr />
-            <div className="">
-              <div className="d-flex align-items-center">
-                <span className="me-4">Quantity: </span>
-                <div className="d-flex">
-                  <button
-                    className="btn btn-outline-secondary me-2"
-                    onClick={() => {
-                      quantity > 0 && setQuantity(quantity - 1);
-                    }}
-                  >
-                    <BiMinus />
-                  </button>
-                  <input
-                    className="form-control w-25"
-                    type="number"
-                    inputMode="numeric"
-                    aria-label="default input example"
-                    value={quantity || 0}
-                    onChange={e => {
-                      const newValue = e.target.value;
-                      const parsedValue = newValue ? parseInt(newValue, 10) : 0;
-                      setQuantity(parsedValue);
-                    }}
-                  />
-                  <button
-                    className="btn btn-outline-secondary ms-2"
-                    onClick={() => setQuantity(quantity + 1)}
-                  >
-                    <GrAdd />
-                  </button>
+            {stockpile.some(instock => instock.quantity > 0) ? (
+              <>
+                <div className="">
+                  <span>Category: {category}</span>
                 </div>
-              </div>
-            </div>
+                <div className="">
+                  <span>Price: </span>
+                  <h5>$ {price}</h5>
+                </div>
+                <hr />
+                <div className="">
+                  <div className="d-flex align-items-center">
+                    <span className="me-4">Quantity: </span>
+                    <div className="d-flex">
+                      <button
+                        className="btn btn-outline-secondary me-2"
+                        onClick={() => {
+                          quantity > 0 && setQuantity(quantity - 1);
+                        }}
+                      >
+                        <BiMinus />
+                      </button>
+                      <input
+                        className="form-control w-25"
+                        type="number"
+                        inputMode="numeric"
+                        aria-label="default input example"
+                        value={quantity || 0}
+                        onChange={e => {
+                          const newValue = e.target.value;
+                          const parsedValue = newValue ? parseInt(newValue, 10) : 0;
+                          setQuantity(parsedValue);
+                        }}
+                      />
+                      <button
+                        className="btn btn-outline-secondary ms-2"
+                        onClick={() => setQuantity(quantity + 1)}
+                      >
+                        <GrAdd />
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-            {userRole === "buyer" && (
-              <div className="mt-4">
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={handleCreateOrder}
-                >
-                  Place Order
-                </button>
-              </div>
+                {userRole === "buyer" && (
+                  <div className="mt-4">
+                    <button
+                      className="btn btn-outline-primary"
+                      onClick={handleCreateOrder}
+                    >
+                      Place Order
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-danger">Out of Stock</div>
             )}
+
           </div>
         </div>
       </div>
