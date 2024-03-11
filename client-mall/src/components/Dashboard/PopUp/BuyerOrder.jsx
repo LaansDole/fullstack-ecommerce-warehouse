@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import PropTypes from "prop-types";
-import { putDataAPI } from "../../../api/apiRequest";
+import { getDataAPI, putDataAPI } from "../../../api/apiRequest";
 
 const BuyerOrder = ({ compData, compFunction }) => {
   const { edited, editedBuyerOrderData } = compData;
   const { setPopUpState, setBuyerOrdersData } = compFunction;
+  const [stockpile, setStockpile] = useState([]);
+  const [buyerOrders, setBuyerOrders] = useState([]);
 
   const BuyerOrderState = {
-    product_id: "",
+    order_id: "",
     quantity: 0,
   };
 
   const [buyerOrderData, setBuyerOrderData] = useState(BuyerOrderState);
-  const { quantity, product_id } = buyerOrderData;
+  const { quantity, order_id } = buyerOrderData;
 
   useEffect(() => {
     if (edited) {
@@ -22,13 +24,42 @@ const BuyerOrder = ({ compData, compFunction }) => {
         quantity: editedBuyerOrderData.quantity
           ? editedBuyerOrderData.quantity
           : "",
-        product_id: editedBuyerOrderData.id ? editedBuyerOrderData.id : "",
+        order_id: editedBuyerOrderData.id ? editedBuyerOrderData.id : "",
       }));
     }
+
+    const fetchDetailProduct = async () => {
+      try {
+        const response = await getDataAPI("stock");
+
+        setStockpile(response.data);
+
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchDetailProduct();
+    console.log(stockpile);
+
+    const fetchBuyerOrderByID = async () => {
+      try {
+        const response = await getDataAPI("buyer-order");
+
+        setBuyerOrders(response.data);
+
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchBuyerOrderByID();
+    console.log(buyerOrders);
+
   }, [
     edited,
     editedBuyerOrderData.id,
-    editedBuyerOrderData.product_id,
+    editedBuyerOrderData.order_id,
     editedBuyerOrderData.quantity,
   ]);
 
@@ -38,10 +69,24 @@ const BuyerOrder = ({ compData, compFunction }) => {
     setBuyerOrderData(preState => ({ ...preState, [name]: parseValue }));
   };
 
+
+
   const handleSubmitData = async e => {
     e.preventDefault();
 
     try {
+      // Find the product id in the buyer orders
+      const productInOrder = buyerOrders.find(item => item.id === buyerOrderData.order_id);
+      console.log(productInOrder);
+      // Find the product in the stockpile
+      const productInStockpile = stockpile.find(item => item.product_id === productInOrder.product_id);
+      console.log(productInStockpile);
+      // If the product doesn't exist in the stockpile or the requested quantity is more than the available quantity
+      if (!productInStockpile || buyerOrderData.quantity > productInStockpile.quantity) {
+        toast.error("Not enough quantity in stockpile");
+        return;
+      }
+
       if (buyerOrderData.quantity > 0) {
         if (edited) {
           const response = await putDataAPI(
@@ -94,8 +139,8 @@ const BuyerOrder = ({ compData, compFunction }) => {
                 <input
                   type="number"
                   className="form-control"
-                  name="product_id"
-                  value={product_id}
+                  name="order_id"
+                  value={order_id}
                   disabled={true}
                 />
               </div>

@@ -4,6 +4,6 @@ const { authenticate } = require("../middleware/authenticate");
 const { checkAdmin } = require("../middleware/checkRoles");
 const { getAllStockpile } = require("../controllers/stockController");
 
-stockRouter.get("/", authenticate, checkAdmin, getAllStockpile);
+stockRouter.get("/", authenticate, getAllStockpile);
 
 module.exports = stockRouter;

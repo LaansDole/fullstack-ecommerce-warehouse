@@ -103,7 +103,7 @@ const BuyerOrder = ({ data, compFunction }) => {
               <span>Created Date</span>
             </th>
             <th>
-              <span>Accept/Decline</span>
+              <span>Order/Cancel</span>
             </th>
             <th>
               <span>Action</span>
