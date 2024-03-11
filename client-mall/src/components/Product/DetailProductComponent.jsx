@@ -27,17 +27,17 @@ const DetailProductComponent = () => {
   const [quantity, setQuantity] = useState(0);
   const [stockpile, setStockpile] = useState([]);
 
-  useEffect(() => {
-    const fetchDetailProduct = async () => {
-      try {
-        const response = await getDataAPI(`product/${id}`);
-        setDetailProduct(response?.data.product);
-        setStockpile(response?.data.stockpile);
+  const fetchDetailProduct = async () => {
+    try {
+      const response = await getDataAPI(`product/${id}`);
+      setDetailProduct(response?.data.product);
+      setStockpile(response?.data.stockpile);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
 
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
+  useEffect(() => {
     fetchDetailProduct();
   }, [id]);
 

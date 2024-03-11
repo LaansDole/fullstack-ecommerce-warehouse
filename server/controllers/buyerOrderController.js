@@ -60,6 +60,20 @@ const placeOrder = async (req, res) => {
     const buyer_username = req.username;
     let { order_quantity } = req.body;
 
+    // Double check if the product is still instock
+    const [productInstock] = await db.poolBuyer.query(
+      "SELECT quantity FROM stockpile WHERE product_id = ?",
+      [order_product_id]
+    );
+
+    if (!productInstock[0]) {
+      return res.status(200).json({ message: "Product is out of stock!" });
+    }
+
+    if (productInstock[0].quantity < order_quantity) {
+      return res.status(200).json({ message: "Not enough product instock" });
+    }
+
     // Check if the product id is already in the buyer order database
     const [existingOrders] = await db.poolBuyer.query(
       "SELECT * FROM buyer_order WHERE product_id = ? AND buyer = ?",
@@ -109,7 +123,7 @@ const placeOrder = async (req, res) => {
       result: resultCode,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "This is an error" });
   }
 };
 
