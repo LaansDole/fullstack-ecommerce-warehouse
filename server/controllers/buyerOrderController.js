@@ -58,7 +58,45 @@ const placeOrder = async (req, res) => {
   try {
     const order_product_id = req.params.id;
     const buyer_username = req.username;
-    const { order_quantity } = req.body;
+    let { order_quantity } = req.body;
+
+    // Double check if the product is still instock
+    const [productInstock] = await db.poolBuyer.query(
+      "SELECT quantity FROM stockpile WHERE product_id = ?",
+      [order_product_id]
+    );
+
+    if (!productInstock[0]) {
+      return res.status(200).json({ message: "Product is out of stock!" });
+    }
+
+    if (productInstock[0].quantity < order_quantity) {
+      return res.status(200).json({ message: "Not enough product instock" });
+    }
+
+    // Check if the product id is already in the buyer order database
+    const [existingOrders] = await db.poolBuyer.query(
+      "SELECT * FROM buyer_order WHERE product_id = ? AND buyer = ?",
+      [order_product_id, buyer_username],
+    );
+
+    if (existingOrders.length > 0) {
+      // Get the product quantity of the original buyer order and add to the new buyer order quantity
+      const existingOrder = existingOrders[0];
+      order_quantity += existingOrder.quantity;
+
+      // Call sp_return_product_from_buyer_order to return the product quantity of the original order
+      await db.poolBuyer.query("CALL sp_return_product_from_buyer_order(?, @result)", [existingOrder.id]);
+      const [[{ result: returnResultCode }]] = await db.poolBuyer.query("SELECT @result as result");
+      if (returnResultCode !== 0) {
+        return res.status(500).json({ error: "An error occurred while returning the product quantity", result: returnResultCode });
+      }
+
+      // Delete the original buyer order
+      await db.poolBuyer.query("DELETE FROM buyer_order WHERE id = ?", [existingOrder.id]);
+    }
+
+    // Call the stored procedure to place an order
     await db.poolBuyer.query("CALL sp_place_buyer_order(?, ?, ?, @result)", [
       order_quantity,
       order_product_id,
@@ -85,9 +123,11 @@ const placeOrder = async (req, res) => {
       result: resultCode,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "This is an error" });
   }
 };
+
+
 
 const getAllBuyerOrders = async (req, res) => {
   try {
@@ -280,17 +320,33 @@ const updateBuyerOrderStatusReject = async (req, res) => {
 const deleteBuyerOrder = async (req, res) => {
   const { id } = req.params;
   try {
+    // Get the order_status of the order based on its id
+    const [orderResults] = await db.poolBuyer.query("SELECT order_status FROM buyer_order WHERE id = ?", [id]);
+    if (orderResults.length === 0) {
+      return res.status(404).json({ error: `Buyer order with id: ${id} not found` });
+    }
+
+    const order_status = orderResults[0].order_status;
+    console.log(order_status);
+
+    // If the order status is pending ('P'), call sp_return_product_from_buyer_order to return that product quantity back
+    if (order_status === 'P') {
+      await db.poolBuyer.query("CALL sp_return_product_from_buyer_order(?, @result)", [id]);
+      const [[{ result: resultCode }]] = await db.poolBuyer.query("SELECT @result as result");
+      if (resultCode !== 0) {
+        return res.status(500).json({ error: "An error occurred while returning the product quantity" });
+      }
+    }
+
+    // Delete that buyer order based on its id
     await db.poolBuyer.query("DELETE FROM buyer_order WHERE id = ?", [id]);
-    res
-      .status(200)
-      .json({ message: `Buyer order with ID: ${id} deleted`, id: id });
+    res.status(200).json({ message: `Buyer order with ID: ${id} deleted`, id: id });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while deleting a buyer order" });
+    res.status(500).json({ error: "An error occurred while deleting a buyer order" });
   }
 };
+
 
 module.exports = {
   placeOrder,

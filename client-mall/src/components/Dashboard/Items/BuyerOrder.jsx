@@ -164,14 +164,13 @@ const BuyerOrder = ({ data, compFunction }) => {
                     </span>
                   )}
 
-                  {item.order_status !== "P" && (
-                    <span
-                      className="btn btn-warning ms-2"
-                      onClick={() => handleDeleteData(item.id, "buyer order")}
-                    >
-                      <ImBin2 />
-                    </span>
-                  )}
+                  <span
+                    className="btn btn-warning ms-2"
+                    onClick={() => handleDeleteData(item.id, "buyer order")}
+                  >
+                    <ImBin2 />
+                  </span>
+
                 </td>
               </tr>
             );
