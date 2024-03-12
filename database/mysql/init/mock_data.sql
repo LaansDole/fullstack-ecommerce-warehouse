@@ -15,9 +15,9 @@ VALUES ('tony', '', 'tony'),
 INSERT INTO buyer (username)
 VALUES ('tony');
 
-INSERT INTO seller (username, shop_name)
-VALUES ('loi', 'loc'),
-       ('mike', 'vo');
+INSERT INTO seller (username, shop_name, city)
+VALUES ('loi', 'loi', 'HCM'),
+       ('mike', 'vo', 'HCM');
 
 
 -- Product category and attribute
