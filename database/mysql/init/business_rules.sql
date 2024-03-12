@@ -160,16 +160,21 @@ DROP PROCEDURE IF EXISTS sp_fulfill_inbound_order;
 DELIMITER $$
 CREATE PROCEDURE sp_fulfill_inbound_order(
     IN inbound_order_id INT,
+    IN seller_username VARCHAR(45),
     OUT result INT
 )
 this_proc:
 BEGIN
-    DECLARE remaining_product_items_count INT DEFAULT 0;
+DECLARE remaining_product_items_count INT DEFAULT 0;
     DECLARE product_items_fill_count INT DEFAULT 0;
     DECLARE _rollback BOOL DEFAULT 0;
+    DECLARE seller_city VARCHAR(45);
     DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET _rollback = 1;
     START TRANSACTION;
     SET result = 0;
+
+    -- Get the city of the seller
+    SELECT city INTO seller_city FROM seller WHERE username = seller_username;
 
     -- Checks for early termination
     SELECT count(*) INTO @exist_order FROM inbound_order WHERE id = inbound_order_id FOR UPDATE;
@@ -179,7 +184,6 @@ BEGIN
     SELECT count(fulfilled_time) INTO @order_fulfilled_time FROM inbound_order WHERE id = inbound_order_id;
     IF (@order_fulfilled_date = 1) OR (@order_fulfilled_time = 1) THEN SET result = 1; ROLLBACK; LEAVE this_proc; END IF;
 
-
     -- Check if there is enough space in our warehouses to take in new product items
     SELECT sum(available_volume)
     INTO @total_available_warehouse_volume
@@ -187,6 +191,7 @@ BEGIN
           FROM warehouse w
               LEFT JOIN stockpile s ON s.warehouse_id = w.id
               LEFT JOIN product p ON s.product_id = p.id
+          WHERE w.city = seller_city
           GROUP BY w.id) AS warehouse_available_volume;
 
     SELECT o.quantity * p.width * p.length * p.height
@@ -196,7 +201,6 @@ BEGIN
     WHERE o.id = inbound_order_id;
 
     IF @total_available_warehouse_volume < @order_volume THEN SET result = 1; ROLLBACK; LEAVE this_proc; END IF;
-
 
     -- Update the database
     SELECT p.id, p.width * p.length * p.height
@@ -216,6 +220,7 @@ BEGIN
                   FROM stockpile s
                       LEFT JOIN warehouse w ON s.warehouse_id = w.id
                       LEFT JOIN product p on s.product_id = p.id
+                  WHERE w.city = seller_city
                   GROUP BY w.id
                   ORDER BY available_volume DESC
                   LIMIT 1) best_warehouse;
@@ -237,7 +242,6 @@ BEGIN
         fulfilled_time = time(sysdate())
     WHERE id = inbound_order_id;
 
-
     -- Commit or Rollback
     IF _rollback THEN
         SET result = -1;
@@ -247,6 +251,7 @@ BEGIN
     END IF;
 END $$
 DELIMITER ;
+
 
 
 /*
