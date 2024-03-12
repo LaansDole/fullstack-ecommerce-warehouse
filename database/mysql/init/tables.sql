@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS seller
 (
     username  VARCHAR(45),
     shop_name VARCHAR(45) NOT NULL,
+    city VARCHAR(45) NOT NULL,
     CONSTRAINT seller_pk PRIMARY KEY (username),
     CONSTRAINT seller_shop_name_un UNIQUE (shop_name),
     CONSTRAINT seller_username_fk FOREIGN KEY (username) REFERENCES lazada_user (username)

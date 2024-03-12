@@ -5,6 +5,7 @@ import { getDataAPI } from "../../api/apiRequest";
 const ProfileComponent = () => {
   const [userName, setUserName] = useState("");
   const [shopName, setShopName] = useState("");
+  const [city, setCity] = useState("");
 
   const userRole = JSON.parse(localStorage.getItem("userInfo"))?.role;
   const username = JSON.parse(localStorage.getItem("userInfo"))?.username;
@@ -18,6 +19,7 @@ const ProfileComponent = () => {
         if (response.status === 200 || response.status === 201) {
           setUserName(response.data.username);
           setShopName(response.data.shop_name);
+          setCity(response.data.city);
         }
       };
 
@@ -41,10 +43,16 @@ const ProfileComponent = () => {
             </tr>
 
             {userRole === "seller" && (
-              <tr>
-                <th>Shop name: </th>
-                <td>{shopName}</td>
-              </tr>
+              <>
+                <tr>
+                  <th>Shop name: </th>
+                  <td>{shopName}</td>
+                </tr>
+                <tr>
+                  <th>Address: </th>
+                  <td>{city}</td>
+                </tr>
+              </>
             )}
           </tbody>
         </table>

@@ -18,6 +18,7 @@ const register = async (req, res) => {
     const password = req.body.password;
     const role = req.body.role;
     const shop_name = req.body.shop_name;
+    const city = req.body.city;
 
     // prevent SQL injection
     if (!username.match(normalCharRegex)) {
@@ -28,6 +29,7 @@ const register = async (req, res) => {
     console.log(`password: ${password}`);
     console.log(`role: ${role}`);
     console.log(`shop_name: ${shop_name}`);
+    console.log(`city: ${city}`);
 
     if (
       (await model.getLazadaUser(username)) ||
@@ -58,9 +60,8 @@ const register = async (req, res) => {
     console.log(`Hashed Password: ${hashedPassword}`);
 
     // Insert the user into the database
-    model.insertLazadaUserByRole(role, username, hashedPassword, shop_name);
+    model.insertLazadaUserByRole(role, username, hashedPassword, shop_name, city);
 
-    req.role = role;
     req.username = username;
     req.role = role;
 
@@ -69,6 +70,7 @@ const register = async (req, res) => {
       username: username,
       role: role,
       shop_name: shop_name,
+      city: city,
     });
   } catch (err) {
     console.error("error: " + err.stack);

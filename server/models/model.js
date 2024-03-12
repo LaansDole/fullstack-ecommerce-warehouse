@@ -52,11 +52,11 @@ database.getSeller = async username => {
   }
 };
 
-database.insertSeller = (username, shop_name) => {
+database.insertSeller = (username, shop_name, city) => {
   return new Promise((resolve, reject) => {
     db.poolSeller.query(
-      `INSERT INTO seller (username, shop_name) VALUES (?, ?)`,
-      [username, shop_name],
+      `INSERT INTO seller (username, shop_name, city) VALUES (?, ?, ?)`,
+      [username, shop_name, city],
       (err, results) => {
         if (err) {
           console.error("error: " + err.stack);
@@ -162,6 +162,7 @@ database.insertLazadaUserByRole = async (
   username,
   hashedPassword,
   shop_name,
+  city
 ) => {
   try {
     const queryMall = `INSERT INTO lazada_user (username, password_hash) VALUES (?, ?)`;
@@ -181,7 +182,7 @@ database.insertLazadaUserByRole = async (
       await db.poolSeller.query(queryMall, values);
 
       // Insert the user into the seller table
-      database.insertSeller(username, shop_name);
+      database.insertSeller(username, shop_name, city);
     } else if (role === "admin") {
       // Insert the user into the wh_admin table
       database.insertWHAdmin(username, hashedPassword);
