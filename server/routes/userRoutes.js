@@ -80,30 +80,4 @@ userRouter.put(
   userController.updateSeller,
 );
 
-// Delete a buyer by username
-userRouter.delete(
-  "/buyer/:username",
-  authenticate,
-  checkAdmin,
-  checkBuyer,
-  userController.deleteBuyerByUsername,
-);
-
-// Delete a wh admin by username
-userRouter.delete(
-  "/admin/:username",
-  authenticate,
-  checkAdmin,
-  userController.deleteWHAdminByUsername,
-);
-
-// Delete a seller by username
-userRouter.delete(
-  "/seller/:username",
-  authenticate,
-  checkAdmin,
-  checkSeller,
-  userController.deleteSellerByUsername,
-);
-
 module.exports = userRouter;
