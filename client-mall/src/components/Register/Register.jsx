@@ -16,6 +16,7 @@ const RegisterComponent = () => {
   const rolesMap = ["buyer", "seller"];
   const [roles, setRoles] = useState(rolesMap[0]);
   const [shopName, setShopName] = useState("");
+  const [city, setCity] = useState("");
   const { username, password } = registerState;
 
   const normalCharRegex = /^[A-Za-z0-9._-]*$/;
@@ -56,6 +57,7 @@ const RegisterComponent = () => {
             password: password,
             role: roles,
             shop_name: shopName,
+            city: city,
           });
           if (response.status === 200 || response.status === 201) {
             toast.success(`Register Successfully!`);
@@ -151,19 +153,35 @@ const RegisterComponent = () => {
             </div>
 
             {roles === "seller" && (
-              <div className="form-floating mb-4">
-                <input
-                  type="text"
-                  className="form-control"
-                  id="floatingInput"
-                  placeholder=""
-                  name="username"
-                  value={shopName}
-                  onChange={e => setShopName(e.target.value)}
-                  required
-                />
-                <label htmlFor="floatingInput">Shop Name</label>
-              </div>
+              <>
+                <div className="form-floating mb-4">
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="floatingInput"
+                    placeholder=""
+                    name="shopname"
+                    value={shopName}
+                    onChange={e => setShopName(e.target.value)}
+                    required
+                  />
+                  <label htmlFor="floatingInput">Shop Name</label>
+                </div>
+
+                <div className="form-floating mb-4">
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="floatingInput"
+                    placeholder=""
+                    name="city"
+                    value={city}
+                    onChange={e => setCity(e.target.value)}
+                    required
+                  />
+                  <label htmlFor="floatingInput">City</label>
+                </div>
+              </>
             )}
 
             <button

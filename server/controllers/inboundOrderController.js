@@ -199,8 +199,10 @@ OUT result:
 const fulfillInboundOrder = async (req, res) => {
   try {
     const { id } = req.params;
-    await db.poolSeller.query("CALL sp_fulfill_inbound_order(?, @result)", [
+    const seller = req.username;
+    const fulfillResult = await db.poolSeller.query("CALL sp_fulfill_inbound_order(?, ?, @result)", [
       id,
+      seller
     ]);
     const [[{ result: resultCode }]] = await db.poolSeller.query(
       "SELECT @result as result",
