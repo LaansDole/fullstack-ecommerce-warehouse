@@ -129,25 +129,84 @@ func Login(c *gin.Context) {
 		shopName = seller.ShopName
 	} else if buyer != nil {
 		role = "buyer"
+		shopName = ""
 	} else {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
 		return
 	}
 
-	existingUser, _ := models.GetLazadaUser(user.Username)
+	existingUser, err := models.GetLazadaUser(user.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
 
 	fmt.Println("Role: ", role)
 
 	// Compare the provided password with the stored hashed password
-	err := bcrypt.CompareHashAndPassword([]byte(existingUser.PasswordHash), []byte(user.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(existingUser.PasswordHash), []byte(user.Password))
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect password"})
 		return
 	}
 
-	// Generate tokens
+	// Generate and set tokens
+	generateAndSetTokens(c, user.Username, role, shopName)
 
-	userTokens, err := tokens.GenerateTokens(user.Username, role, shopName)
+	c.JSON(http.StatusOK, gin.H{
+		"message":   fmt.Sprintf("User %s authenticated", user.Username),
+		"username":  user.Username,
+		"role":      role,
+		"shop_name": shopName,
+	})
+}
+
+func LoginAdmin(c *gin.Context) {
+	var user User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fmt.Println("Username: ", user.Username)
+	fmt.Println("Password: ", user.Password)
+
+	if user.Username == "" || user.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Please provide a username and password"})
+		return
+	}
+
+	existingUser, err := models.GetWHAdmin(user.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	fmt.Printf("Login user's password_hash: %s\n", existingUser.PasswordHash)
+
+	// Compare the provided password with the stored hashed password
+	err = bcrypt.CompareHashAndPassword([]byte(existingUser.PasswordHash), []byte(user.Password))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect password"})
+		return
+	}
+
+	role := "admin"
+	shopName := ""
+
+	// Generate and set tokens
+	generateAndSetTokens(c, user.Username, role, shopName)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":  fmt.Sprintf("User %s authenticated", user.Username),
+		"username": user.Username,
+		"role":     "admin",
+	})
+}
+
+func generateAndSetTokens(c *gin.Context, username, role, shopName string) {
+	// Generate tokens
+	userTokens, err := tokens.GenerateTokens(username, role, shopName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -157,13 +216,41 @@ func Login(c *gin.Context) {
 	fmt.Println("Refresh Tokens: ", userTokens.RefreshToken)
 
 	// Set the token as a cookie
+	tokens.SetTokenCookie(c, username, role, shopName)
+}
 
-	tokens.SetTokenCookie(c, user.Username, role, shopName)
+func Logout(c *gin.Context) {
+	username := c.GetString("username")
+	role := c.GetString("role")
+
+	fmt.Printf("%s logged out with role %s\n", username, role)
+
+	if role == "admin" {
+		err := models.DeleteWHAdminToken(username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+		fmt.Printf("\nDelete %s %s token\n", role, username)
+	} else if role == "seller" || role == "buyer" {
+		err := models.DeleteLazadaUserToken(username)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+		fmt.Printf("\nDelete %s %s token\n", role, username)
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Clear the access and refresh tokens
+	c.SetCookie("accessToken", "", -1, "/", "", false, true)
+	c.SetCookie("refreshToken", "", -1, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":   fmt.Sprintf("User %s authenticated", user.Username),
-		"username":  user.Username,
-		"role":      role,
-		"shop_name": shopName,
+		"message":  fmt.Sprintf("User %s log out", username),
+		"username": username,
+		"role":     role,
 	})
 }

@@ -119,6 +119,11 @@ func InsertWHAdmin(username, passwordHash string) (sql.Result, error) {
 	return result, nil
 }
 
+func DeleteWHAdminToken(username string) error {
+	_, err := DBAdmin.Exec("UPDATE wh_admin SET refresh_token = NULL WHERE username = ?", username)
+	return err
+}
+
 // Endpoints for Lazada Users
 
 func GetLazadaUser(username string) (*LazadaUser, error) {
