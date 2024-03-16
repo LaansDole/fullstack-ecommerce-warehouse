@@ -44,6 +44,7 @@ const RegisterComponent = () => {
             password: password,
             role: roles,
           });
+          console.log(response);
           if (response.status === 200 || response.status === 201) {
             toast.success(`Register Successfully!`);
             // Redirect to the home page
