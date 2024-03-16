@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func setTokenCookie(c *gin.Context, username string, role string, shopName string) {
-	tokens, err := generateTokens(username, role, shopName)
+func SetTokenCookie(c *gin.Context, username string, role string, shopName string) {
+	tokens, err := GenerateTokens(username, role, shopName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

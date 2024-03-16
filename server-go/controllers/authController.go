@@ -6,14 +6,15 @@ import (
 	"regexp"
 
 	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/models"
+	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/tokens"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
 	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	Role     string `json:"role" binding:"required"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
 	ShopName string `json:"shop_name"`
 	City     string `json:"city"`
 }
@@ -99,5 +100,70 @@ func Register(c *gin.Context) {
 		"role":      user.Role,
 		"shop_name": user.ShopName,
 		"city":      user.City,
+	})
+}
+
+func Login(c *gin.Context) {
+	var user User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fmt.Println("Username: ", user.Username)
+	fmt.Println("Password: ", user.Password)
+
+	if user.Username == "" || user.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Please provide a username and password"})
+		return
+	}
+
+	var role, shopName string
+
+	// Retrieve the user from the database
+	seller, _ := models.GetSeller(user.Username)
+	buyer, _ := models.GetBuyer(user.Username)
+
+	if seller != nil {
+		role = "seller"
+		shopName = seller.ShopName
+	} else if buyer != nil {
+		role = "buyer"
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	existingUser, _ := models.GetLazadaUser(user.Username)
+
+	fmt.Println("Role: ", role)
+
+	// Compare the provided password with the stored hashed password
+	err := bcrypt.CompareHashAndPassword([]byte(existingUser.PasswordHash), []byte(user.Password))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect password"})
+		return
+	}
+
+	// Generate tokens
+
+	userTokens, err := tokens.GenerateTokens(user.Username, role, shopName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	fmt.Println("Access Tokens: ", userTokens.AccessToken)
+	fmt.Println("Refresh Tokens: ", userTokens.RefreshToken)
+
+	// Set the token as a cookie
+
+	tokens.SetTokenCookie(c, user.Username, role, shopName)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":   fmt.Sprintf("User %s authenticated", user.Username),
+		"username":  user.Username,
+		"role":      role,
+		"shop_name": shopName,
 	})
 }

@@ -15,7 +15,7 @@ type Tokens struct {
 	RefreshToken string
 }
 
-func generateTokens(username, role, shopName string) (Tokens, error) {
+func GenerateTokens(username, role, shopName string) (Tokens, error) {
 
 	var err error
 	err = godotenv.Load()

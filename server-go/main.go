@@ -77,6 +77,7 @@ func main() {
 	})
 
 	router.POST("/api/auth/register", controllers.Register)
+	router.POST("/api/auth/login", controllers.Login)
 
 	log.Fatal(router.Run(":" + port))
 }
