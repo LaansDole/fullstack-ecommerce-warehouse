@@ -79,6 +79,10 @@ func GetWHAdmin(username string) (*WHAdmin, error) {
 	var admin WHAdmin
 	err := DBAdmin.QueryRow("SELECT * FROM wh_admin WHERE username = ?", username).Scan(&admin.Username, &admin.PasswordHash)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			// No user with the provided username was found
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &admin, nil
@@ -113,6 +117,10 @@ func GetLazadaUser(username string) (*LazadaUser, error) {
 	var user LazadaUser
 	err := DBSeller.QueryRow("SELECT * FROM lazada_user WHERE username = ?", username).Scan(&user.Username, &user.RefreshToken, &user.PasswordHash)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			// No user with the provided username was found
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &user, nil

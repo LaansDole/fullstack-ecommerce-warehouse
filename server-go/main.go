@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/controllers"
+	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/models"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -63,5 +66,17 @@ func main() {
 		}
 	})
 
-	log.Fatal(router.Run(":" + port))
+	router.GET("/api/test/buyers", func(c *gin.Context) {
+		buyers, err := models.GetAllBuyers() // use GetAllBuyers function
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, buyers)
+	})
+
+	router.POST("/api/auth/register", controllers.Register)
+
+	log.Fatal(router.Run(":" + "3003"))
 }
