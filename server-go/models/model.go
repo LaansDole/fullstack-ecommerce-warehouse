@@ -23,6 +23,7 @@ type Seller struct {
 
 type WHAdmin struct {
 	Username     string `db:"username"`
+	RefreshToken string `db:"refresh_token"`
 	PasswordHash string `db:"password_hash"`
 }
 
@@ -77,6 +78,8 @@ func GetShopName(shopName string) (*Seller, error) {
 
 func GetWHAdmin(username string) (*WHAdmin, error) {
 	var admin WHAdmin
+	var refreshToken sql.NullString // use sql.NullString for nullable columns
+
 	err := DBAdmin.QueryRow("SELECT * FROM wh_admin WHERE username = ?", username).Scan(&admin.Username, &admin.PasswordHash)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -85,6 +88,8 @@ func GetWHAdmin(username string) (*WHAdmin, error) {
 		}
 		return nil, err
 	}
+
+	admin.RefreshToken = refreshToken.String // convert sql.NullString to string
 	return &admin, nil
 }
 
@@ -115,14 +120,14 @@ func GetLazadaUserByRole(role, username string) (interface{}, error) {
 
 func GetLazadaUser(username string) (*LazadaUser, error) {
 	var user LazadaUser
-	err := DBSeller.QueryRow("SELECT * FROM lazada_user WHERE username = ?", username).Scan(&user.Username, &user.RefreshToken, &user.PasswordHash)
+	var refreshToken sql.NullString // use sql.NullString for nullable columns
+
+	err := DBSeller.QueryRow("SELECT * FROM lazada_user WHERE username = ?", username).Scan(&user.Username, &refreshToken, &user.PasswordHash)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			// No user with the provided username was found
-			return nil, nil
-		}
 		return nil, err
 	}
+
+	user.RefreshToken = refreshToken.String // convert sql.NullString to string
 	return &user, nil
 }
 

@@ -77,6 +77,14 @@ func Register(c *gin.Context) {
 
 	fmt.Println(`Hashed Password: ` + string(hashedPassword))
 
+	// Insert the user into the database
+	err = models.InsertLazadaUserByRole(role, username, string(hashedPassword), shop_name, city)
+	if err != nil {
+		fmt.Println("Error inserting user into database: ", err) // log error
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error inserting user into database"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":   fmt.Sprintf("User %s created with username: %s", role, username),
 		"username":  username,
