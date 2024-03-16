@@ -1,7 +1,9 @@
 SHELL := /bin/bash
-.PHONY: go-publish
-go-publish:
+.PHONY: tidy
+tidy:
 	go mod tidy
+.PHONY: go-publish
+go-publish: tidy
 	git add .
 	@while true; do \
 		echo "Enter commit type:"; \
