@@ -1,24 +1,41 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
 
-func main() {
-	router := gin.Default()
-	router.Use(gin.Logger())
-	router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+var db *sql.DB
 
-	err := godotenv.Load()
+func main() {
+
+	var err error
+	err = godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8",
+		os.Getenv("DB_USER_ADM"),
+		os.Getenv("DB_PASS_ADM"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("MYSQL_DB"),
+	))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	router := gin.Default()
+	router.Use(gin.Logger())
+	router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{
@@ -34,9 +51,16 @@ func main() {
 	}
 
 	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Server is running",
-		})
+		err := db.Ping()
+		if err != nil {
+			c.JSON(200, gin.H{
+				"message": "Only the Server is running",
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"message": "Server is connected to MySQL",
+			})
+		}
 	})
 
 	log.Fatal(router.Run(":" + port))
