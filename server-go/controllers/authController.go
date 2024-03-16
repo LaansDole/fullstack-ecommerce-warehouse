@@ -10,52 +10,60 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Register(c *gin.Context) {
-	username := c.PostForm("username")
-	fmt.Println("Username: ", username) // log username
+type User struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Role     string `json:"role" binding:"required"`
+	ShopName string `json:"shop_name"`
+	City     string `json:"city"`
+}
 
-	password := c.PostForm("password")
-	role := c.PostForm("role")
-	shop_name := c.PostForm("shop_name")
-	city := c.PostForm("city")
+func Register(c *gin.Context) {
+	var user User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fmt.Println("Username: ", user.Username) // log username
 
 	// prevent SQL injection
-	matched, _ := regexp.MatchString("^[A-Za-z0-9._-]*$", username)
+	matched, _ := regexp.MatchString("^[A-Za-z0-9._-]*$", user.Username)
 	if !matched {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "The username must not have strange characters"})
 		return
 	}
 
 	// Check if user exists
-	user, err := models.GetLazadaUser(username)
+	existingUser, err := models.GetLazadaUser(user.Username)
 	if err != nil {
 		fmt.Println("Error getting Lazada user: ", err) // log error
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	admin, err := models.GetWHAdmin(username)
+	admin, err := models.GetWHAdmin(user.Username)
 	if err != nil {
 		fmt.Println("Error getting WHAdmin: ", err) // log error
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if user != nil || admin != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "Username already exists", "username": username})
+	if existingUser != nil || admin != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Username already exists", "username": user.Username})
 		return
 	}
 
-	if username == "" || role == "" {
+	if user.Username == "" || user.Role == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Please enter a username and role"})
 		return
-	} else if role == "seller" && shop_name == "" {
+	} else if user.Role == "seller" && user.ShopName == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Please enter a shop name"})
 		return
 	}
 
-	if role == "seller" {
-		shop, err := models.GetShopName(shop_name)
+	if user.Role == "seller" {
+		shop, err := models.GetShopName(user.ShopName)
 		if err != nil {
 			fmt.Println("Error getting shop name: ", err) // log error
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -68,7 +76,7 @@ func Register(c *gin.Context) {
 	}
 
 	// Hash the password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		fmt.Println("Error hashing password: ", err) // log error
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error hashing password"})
@@ -78,7 +86,7 @@ func Register(c *gin.Context) {
 	fmt.Println(`Hashed Password: ` + string(hashedPassword))
 
 	// Insert the user into the database
-	err = models.InsertLazadaUserByRole(role, username, string(hashedPassword), shop_name, city)
+	err = models.InsertLazadaUserByRole(user.Role, user.Username, string(hashedPassword), user.ShopName, user.City)
 	if err != nil {
 		fmt.Println("Error inserting user into database: ", err) // log error
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error inserting user into database"})
@@ -86,10 +94,10 @@ func Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":   fmt.Sprintf("User %s created with username: %s", role, username),
-		"username":  username,
-		"role":      role,
-		"shop_name": shop_name,
-		"city":      city,
+		"message":   fmt.Sprintf("User %s created with username: %s", user.Role, user.Username),
+		"username":  user.Username,
+		"role":      user.Role,
+		"shop_name": user.ShopName,
+		"city":      user.City,
 	})
 }

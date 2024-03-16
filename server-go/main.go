@@ -38,7 +38,6 @@ func main() {
 
 	router := gin.Default()
 	router.Use(gin.Logger())
-	router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{
@@ -46,6 +45,7 @@ func main() {
 		fmt.Sprintf("http://localhost:%s", os.Getenv("CLIENT_MALL_PORT")),
 		fmt.Sprintf("http://localhost:%s", os.Getenv("CLIENT_WHADMIN_PORT")),
 	}
+	config.AllowCredentials = true // allow credentials
 	router.Use(cors.New(config))
 
 	port := os.Getenv("SERVER_PORT")

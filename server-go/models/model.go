@@ -6,25 +6,25 @@ import (
 )
 
 type LazadaUser struct {
-	Username     string `db:"username"`
-	RefreshToken string `db:"refresh_token"`
-	PasswordHash string `db:"password_hash"`
+	Username     string `json:"username" binding:"required"`
+	RefreshToken string `json:"refresh_token"`
+	PasswordHash string `json:"password_hash" binding:"required"`
 }
 
 type Buyer struct {
-	Username string `db:"username"`
+	Username string `json:"username" binding:"required"`
 }
 
 type Seller struct {
-	Username string `db:"username"`
-	ShopName string `db:"shop_name"`
-	City     string `db:"city"`
+	Username string `json:"username" binding:"required"`
+	ShopName string `json:"shop_name"`
+	City     string `json:"city"`
 }
 
 type WHAdmin struct {
-	Username     string `db:"username"`
-	RefreshToken string `db:"refresh_token"`
-	PasswordHash string `db:"password_hash"`
+	Username     string `json:"username" binding:"required"`
+	RefreshToken string `json:"refresh_token"`
+	PasswordHash string `json:"password_hash" binding:"required"`
 }
 
 // Endpoints for Buyers
@@ -33,6 +33,9 @@ func GetBuyer(username string) (*Buyer, error) {
 	var buyer Buyer
 	err := DBBuyer.QueryRow("SELECT * FROM buyer WHERE username = ?", username).Scan(&buyer.Username)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &buyer, nil
@@ -41,6 +44,9 @@ func GetBuyer(username string) (*Buyer, error) {
 func InsertBuyer(username string) (sql.Result, error) {
 	result, err := DBBuyer.Exec("INSERT INTO buyer (username) VALUES (?)", username)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return result, nil
@@ -52,6 +58,9 @@ func GetSeller(username string) (*Seller, error) {
 	var seller Seller
 	err := DBSeller.QueryRow("SELECT * FROM seller WHERE username = ?", username).Scan(&seller.Username, &seller.ShopName, &seller.City)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &seller, nil
@@ -60,6 +69,9 @@ func GetSeller(username string) (*Seller, error) {
 func InsertSeller(username, shopName, city string) (sql.Result, error) {
 	result, err := DBSeller.Exec("INSERT INTO seller (username, shop_name, city) VALUES (?, ?, ?)", username, shopName, city)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return result, nil
@@ -69,6 +81,9 @@ func GetShopName(shopName string) (*Seller, error) {
 	var seller Seller
 	err := DBSeller.QueryRow("SELECT * FROM seller WHERE shop_name = ?", shopName).Scan(&seller.Username, &seller.ShopName, &seller.City)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &seller, nil
@@ -80,10 +95,10 @@ func GetWHAdmin(username string) (*WHAdmin, error) {
 	var admin WHAdmin
 	var refreshToken sql.NullString // use sql.NullString for nullable columns
 
-	err := DBAdmin.QueryRow("SELECT * FROM wh_admin WHERE username = ?", username).Scan(&admin.Username, &admin.PasswordHash)
+	err := DBSeller.QueryRow("SELECT * FROM lazada_user WHERE username = ?", username).Scan(&admin.Username, &refreshToken, &admin.PasswordHash)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			// No user with the provided username was found
+			// No admin with the provided username was found
 			return nil, nil
 		}
 		return nil, err
@@ -96,12 +111,32 @@ func GetWHAdmin(username string) (*WHAdmin, error) {
 func InsertWHAdmin(username, passwordHash string) (sql.Result, error) {
 	result, err := DBAdmin.Exec("INSERT INTO wh_admin (username, password_hash) VALUES (?, ?)", username, passwordHash)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return result, nil
 }
 
 // Endpoints for Lazada Users
+
+func GetLazadaUser(username string) (*LazadaUser, error) {
+	var user LazadaUser
+	var refreshToken sql.NullString // use sql.NullString for nullable columns
+
+	err := DBSeller.QueryRow("SELECT * FROM lazada_user WHERE username = ?", username).Scan(&user.Username, &refreshToken, &user.PasswordHash)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// No user with the provided username was found
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	user.RefreshToken = refreshToken.String // convert sql.NullString to string
+	return &user, nil
+}
 
 func GetLazadaUserByRole(role, username string) (interface{}, error) {
 	switch role {
@@ -116,19 +151,6 @@ func GetLazadaUserByRole(role, username string) (interface{}, error) {
 	default:
 		return nil, errors.New("invalid role")
 	}
-}
-
-func GetLazadaUser(username string) (*LazadaUser, error) {
-	var user LazadaUser
-	var refreshToken sql.NullString // use sql.NullString for nullable columns
-
-	err := DBSeller.QueryRow("SELECT * FROM lazada_user WHERE username = ?", username).Scan(&user.Username, &refreshToken, &user.PasswordHash)
-	if err != nil {
-		return nil, err
-	}
-
-	user.RefreshToken = refreshToken.String // convert sql.NullString to string
-	return &user, nil
 }
 
 func InsertLazadaUserByRole(role, username, hashedPassword, shopName, city string) error {
