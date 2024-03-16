@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/controllers"
+	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/middleware"
 	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/models"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -79,6 +80,9 @@ func main() {
 	router.POST("/api/auth/register", controllers.Register)
 	router.POST("/api/auth/login", controllers.Login)
 	router.POST("/api/auth/login/whadmin", controllers.LoginAdmin)
+
+	router.Use(middleware.Authentication())
+	router.DELETE("/api/auth/logout", controllers.Logout)
 
 	log.Fatal(router.Run(":" + port))
 }

@@ -220,25 +220,25 @@ func generateAndSetTokens(c *gin.Context, username, role, shopName string) {
 }
 
 func Logout(c *gin.Context) {
-	username := c.GetString("username")
-	role := c.GetString("role")
+	// Get values from the context
+	username := c.MustGet("username").(string)
+	role := c.MustGet("role").(string)
 
 	fmt.Printf("%s logged out with role %s\n", username, role)
 
+	// Delete the user's token from the database
 	if role == "admin" {
 		err := models.DeleteWHAdminToken(username)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
-		fmt.Printf("\nDelete %s %s token\n", role, username)
 	} else if role == "seller" || role == "buyer" {
 		err := models.DeleteLazadaUserToken(username)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
-		fmt.Printf("\nDelete %s %s token\n", role, username)
 	} else {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
 		return
@@ -248,8 +248,9 @@ func Logout(c *gin.Context) {
 	c.SetCookie("accessToken", "", -1, "/", "", false, true)
 	c.SetCookie("refreshToken", "", -1, "/", "", false, true)
 
+	// Respond with a success message
 	c.JSON(http.StatusOK, gin.H{
-		"message":  fmt.Sprintf("User %s log out", username),
+		"message":  fmt.Sprintf("User %s logged out", username),
 		"username": username,
 		"role":     role,
 	})
