@@ -182,6 +182,11 @@ func LoginAdmin(c *gin.Context) {
 		return
 	}
 
+	if existingUser == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
 	fmt.Printf("Login user's password_hash: %s\n", existingUser.PasswordHash)
 
 	// Compare the provided password with the stored hashed password
