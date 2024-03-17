@@ -74,7 +74,7 @@ func Authentication() gin.HandlerFunc {
 		}
 
 		tokens.SetTokenCookie(c, username, role, shopName)
-		fmt.Println("Role: ", role)
+		fmt.Printf("%s has a role of %s at Middleware", username, role)
 
 		c.Set("username", username)
 		c.Set("role", role)
