@@ -256,8 +256,8 @@ func DeleteProduct(id int) error {
 
 // Endpoints for Inbound Order
 
-// GetInboundOrder retrieves an inbound order by product ID and seller.
-func GetInboundOrder(productID int, seller string) (*InboundOrder, error) {
+// GetInboundOrderByProduct retrieves an inbound order by product ID and seller.
+func GetInboundOrderByProduct(productID int, seller string) (*InboundOrder, error) {
 	var inboundOrder InboundOrder
 	err := DBSeller.QueryRow("SELECT * FROM inbound_order WHERE product_id = ?", productID).Scan(&inboundOrder.ID, &inboundOrder.Quantity, &inboundOrder.ProductID, &inboundOrder.CreatedDate, &inboundOrder.CreatedTime, &inboundOrder.FulfilledDate, &inboundOrder.FulfilledTime, &inboundOrder.Seller)
 	if err != nil {
@@ -269,10 +269,22 @@ func GetInboundOrder(productID int, seller string) (*InboundOrder, error) {
 	return &inboundOrder, nil
 }
 
+func GetInboundOrder(inboundOrderID int, seller string) (*InboundOrder, error) {
+	var inboundOrder InboundOrder
+	err := DBSeller.QueryRow("SELECT * FROM inbound_order WHERE id = ?", inboundOrderID).Scan(&inboundOrder.ID, &inboundOrder.Quantity, &inboundOrder.ProductID, &inboundOrder.CreatedDate, &inboundOrder.CreatedTime, &inboundOrder.FulfilledDate, &inboundOrder.FulfilledTime, &inboundOrder.Seller)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &inboundOrder, nil
+}
+
 // Endpoints for Buyer Order
 
-// GetBuyerOrder retrieves a buyer order by product ID.
-func GetBuyerOrder(productID int) (*BuyerOrder, error) {
+// GetBuyerOrderByProduct retrieves a buyer order by product ID.
+func GetBuyerOrderByProduct(productID int) (*BuyerOrder, error) {
 	var buyerOrder BuyerOrder
 	err := DBBuyer.QueryRow("SELECT * FROM buyer_order WHERE product_id = ?", productID).Scan(&buyerOrder.ProductID)
 	if err != nil {
@@ -286,8 +298,8 @@ func GetBuyerOrder(productID int) (*BuyerOrder, error) {
 
 // Endpoints for Stockpile
 
-// GetStockPile retrieves a stockpile by product ID.
-func GetStockPile(productID int) (*Stockpile, error) {
+// GetStockPileByProduct retrieves a stockpile by product ID.
+func GetStockPileByProduct(productID int) (*Stockpile, error) {
 	var stockPile Stockpile
 	err := DBAdmin.QueryRow("SELECT * FROM stockpile WHERE product_id = ?", productID).Scan(&stockPile.ProductID)
 	if err != nil {

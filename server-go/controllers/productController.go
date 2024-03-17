@@ -208,7 +208,7 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	inboundOrder, err := models.GetInboundOrder(productID, seller)
+	inboundOrder, err := models.GetInboundOrderByProduct(productID, seller)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"Get inbound order error": err.Error()})
 		return
@@ -218,7 +218,7 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	buyerOrder, err := models.GetBuyerOrder(productID)
+	buyerOrder, err := models.GetBuyerOrderByProduct(productID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"Get buyer order error": err.Error()})
 		return
@@ -228,7 +228,7 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	stockPile, err := models.GetStockPile(productID)
+	stockPile, err := models.GetStockPileByProduct(productID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"Get stockpile error": err.Error()})
 		return
