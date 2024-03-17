@@ -83,6 +83,7 @@ func main() {
 	routes.ProductRoutes(router)
 	routes.ProductCategoryRoutes(router)
 	routes.InboundOrderRoutes(router)
+	routes.StockpileRoutes(router)
 
 	log.Fatal(router.Run(":" + port))
 }

@@ -43,7 +43,7 @@ type Product struct {
 type Stockpile struct {
 	ProductID   int `form:"product_id" json:"product_id"`
 	WarehouseID int `form:"warehouse_id" json:"warehouse_id"`
-	Quantity    int `form:"quantity" json:"quantity" binding:"required"`
+	Quantity    int `form:"quantity" json:"quantity"`
 }
 
 type InboundOrder struct {
