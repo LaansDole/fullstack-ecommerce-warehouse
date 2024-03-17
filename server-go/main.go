@@ -37,6 +37,7 @@ func main() {
 	defer db.Close()
 
 	router := gin.Default()
+	router.StaticFS("/uploads", http.Dir("uploads"))
 	router.Use(gin.Logger())
 
 	config := cors.DefaultConfig()

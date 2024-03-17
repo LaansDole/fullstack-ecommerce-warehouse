@@ -16,5 +16,7 @@ func ProductRoutes(router *gin.Engine) {
 		product.GET("/dsc", controllers.GetAllProductsDSC)
 		product.GET("/:id", controllers.GetProductById)
 		product.GET("/title/:title", controllers.GetProductByTitle)
+
+		product.POST("/create", middleware.CheckSeller(), middleware.FileHandling(), controllers.CreateProduct)
 	}
 }

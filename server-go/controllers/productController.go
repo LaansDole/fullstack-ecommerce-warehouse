@@ -2,6 +2,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -10,16 +11,16 @@ import (
 )
 
 type Product struct {
-	ID                 int     `json:"id"`
-	Image              string  `json:"image"`
-	Title              string  `json:"title"`
-	ProductDescription string  `json:"product_description"`
-	Category           string  `json:"category"`
-	Price              float64 `json:"price"`
-	Width              int     `json:"width"`
-	Length             int     `json:"length"`
-	Height             int     `json:"height"`
-	Seller             string  `json:"seller"`
+	ID                 int     `form:"id" json:"id"`
+	Image              string  `form:"image" json:"image"`
+	Title              string  `form:"title" json:"title"`
+	ProductDescription string  `form:"product_description" json:"product_description"`
+	Category           string  `form:"category" json:"category"`
+	Price              float64 `form:"price" json:"price"`
+	Width              int     `form:"width" json:"width"`
+	Length             int     `form:"length" json:"length"`
+	Height             int     `form:"height" json:"height"`
+	Seller             string  `form:"seller" json:"seller"`
 }
 
 func queryProducts(query string, args ...interface{}) ([]Product, error) {
@@ -44,6 +45,8 @@ func queryProducts(query string, args ...interface{}) ([]Product, error) {
 
 	return products, nil
 }
+
+// GET product endpoints
 
 func GetAllProducts(c *gin.Context) {
 	products, err := queryProducts("SELECT * FROM product")
@@ -111,4 +114,40 @@ func GetProductByTitle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, products)
+}
+
+// CREATE product endpoint
+
+func CreateProduct(c *gin.Context) {
+	var product Product
+	if err := c.ShouldBind(&product); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error at bind": err.Error()})
+		return
+	}
+
+	fmt.Printf("\nProduct after binding: %v \n", product)
+
+	product.Seller = c.MustGet("username").(string)
+	product.Image = c.MustGet("imagePath").(string)
+
+	fmt.Println("Product after setting image:", product)
+
+	query := `INSERT INTO product (title, image, product_description, category, price, width, length, height, seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	result, err := models.DBAdmin.Exec(query, product.Title, product.Image, product.ProductDescription, product.Category, product.Price, product.Width, product.Length, product.Height, product.Seller)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Product created successfully",
+		"id":      id,
+		"product": product,
+	})
 }
