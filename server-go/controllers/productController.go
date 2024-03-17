@@ -133,7 +133,7 @@ func CreateProduct(c *gin.Context) {
 	fmt.Println("Product after setting image:", product)
 
 	query := `INSERT INTO product (title, image, product_description, category, price, width, length, height, seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	result, err := models.DBAdmin.Exec(query, product.Title, product.Image, product.ProductDescription, product.Category, product.Price, product.Width, product.Length, product.Height, product.Seller)
+	result, err := models.DBSeller.Exec(query, product.Title, product.Image, product.ProductDescription, product.Category, product.Price, product.Width, product.Length, product.Height, product.Seller)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -150,4 +150,99 @@ func CreateProduct(c *gin.Context) {
 		"id":      id,
 		"product": product,
 	})
+}
+
+// UPDATE product endpoint
+
+func UpdateProduct(c *gin.Context) {
+	var product Product
+	if err := c.ShouldBind(&product); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error at bind": err.Error()})
+		return
+	}
+
+	fmt.Printf("\nProduct after binding: %v \n", product)
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		return
+	}
+
+	product.ID = id
+	product.Seller = c.MustGet("username").(string)
+
+	query := `UPDATE product SET title = ?, product_description = ?, category = ?, price = ?, width = ?, length = ?, height = ?, seller = ? WHERE id = ?`
+	result, err := models.DBSeller.Exec(query, product.Title, product.ProductDescription, product.Category, product.Price, product.Width, product.Length, product.Height, product.Seller, product.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	fmt.Printf("\nResult: %v\n", result)
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Product updated successfully",
+		"product": product,
+	})
+}
+
+// DELETE product endpoint
+
+func DeleteProduct(c *gin.Context) {
+	productID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		return
+	}
+
+	seller := c.MustGet("username").(string)
+
+	product, err := models.GetProduct(productID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Get product error": err.Error()})
+		return
+	}
+	if product == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		return
+	}
+
+	inboundOrder, err := models.GetInboundOrder(productID, seller)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Get inbound order error": err.Error()})
+		return
+	}
+	if inboundOrder != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("There is already created inbound order for this product %d", productID)})
+		return
+	}
+
+	buyerOrder, err := models.GetBuyerOrder(productID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Get buyer order error": err.Error()})
+		return
+	}
+	if buyerOrder != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("A buyer is ordering this product %d!", productID)})
+		return
+	}
+
+	stockPile, err := models.GetStockPile(productID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Get stockpile error": err.Error()})
+		return
+	}
+	if stockPile != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("This product %d is in stockpile!", productID)})
+		return
+	}
+
+	err = models.DeleteProduct(productID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Delete product error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Product deleted", "id": productID})
 }

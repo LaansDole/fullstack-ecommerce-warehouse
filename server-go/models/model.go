@@ -27,6 +27,48 @@ type WHAdmin struct {
 	PasswordHash string `json:"password_hash" binding:"required"`
 }
 
+type Product struct {
+	ID                 int     `form:"id" json:"id"`
+	Image              string  `form:"image" json:"image"`
+	Title              string  `form:"title" json:"title"`
+	ProductDescription string  `form:"product_description" json:"product_description"`
+	Category           string  `form:"category" json:"category"`
+	Price              float64 `form:"price" json:"price"`
+	Width              int     `form:"width" json:"width"`
+	Length             int     `form:"length" json:"length"`
+	Height             int     `form:"height" json:"height"`
+	Seller             string  `form:"seller" json:"seller"`
+}
+
+type Stockpile struct {
+	ProductID   int `form:"product_id" json:"product_id"`
+	WarehouseID int `form:"warehouse_id" json:"warehouse_id"`
+	Quantity    int `form:"quantity" json:"quantity" binding:"required"`
+}
+
+type InboundOrder struct {
+	ID            int    `form:"id" json:"id"`
+	Quantity      int    `form:"quantity" json:"quantity" binding:"required"`
+	ProductID     int    `form:"product_id" json:"product_id" binding:"required"`
+	CreatedDate   string `form:"created_date" json:"created_date" binding:"required"`
+	CreatedTime   string `form:"created_time" json:"created_time" binding:"required"`
+	FulfilledDate string `form:"fulfilled_date" json:"fulfilled_date"`
+	FulfilledTime string `form:"fulfilled_time" json:"fulfilled_time"`
+	Seller        string `form:"seller" json:"seller" binding:"required"`
+}
+
+type BuyerOrder struct {
+	ID            int    `form:"id" json:"id"`
+	Quantity      int    `form:"quantity" json:"quantity" binding:"required"`
+	ProductID     int    `form:"product_id" json:"product_id" binding:"required"`
+	CreatedDate   string `form:"created_date" json:"created_date" binding:"required"`
+	CreatedTime   string `form:"created_time" json:"created_time" binding:"required"`
+	OrderStatus   string `form:"order_status" json:"order_status" binding:"required"`
+	FulfilledDate string `form:"fulfilled_date" json:"fulfilled_date"`
+	FulfilledTime string `form:"fulfilled_time" json:"fulfilled_time"`
+	Buyer         string `form:"buyer" json:"buyer" binding:"required"`
+}
+
 // Endpoints for Buyers
 
 func GetBuyer(username string) (*Buyer, error) {
@@ -181,4 +223,73 @@ func InsertLazadaUserByRole(role, username, hashedPassword, shopName, city strin
 func DeleteLazadaUserToken(username string) error {
 	_, err := DBSeller.Exec("UPDATE lazada_user SET refresh_token = NULL WHERE username = ?", username)
 	return err
+}
+
+// Endpoints for Products
+
+// GetProduct retrieves a product by its ID.
+func GetProduct(id int) (*Product, error) {
+	var product Product
+	err := DBAdmin.QueryRow("SELECT * FROM product WHERE id = ?", id).Scan(&product.ID, &product.Image, &product.Title, &product.ProductDescription, &product.Category, &product.Price, &product.Width, &product.Length, &product.Height, &product.Seller)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &product, nil
+}
+
+// DeleteProduct deletes a product by its ID.
+func DeleteProduct(id int) error {
+	_, err := DBAdmin.Exec("DELETE FROM product WHERE id = ?", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Endpoints for Inbound Order
+
+// GetInboundOrder retrieves an inbound order by product ID and seller.
+func GetInboundOrder(productID int, seller string) (*InboundOrder, error) {
+	var inboundOrder InboundOrder
+	err := DBSeller.QueryRow("SELECT * FROM inbound_order WHERE product_id = ?", productID).Scan(&inboundOrder.ID, &inboundOrder.Quantity, &inboundOrder.ProductID, &inboundOrder.CreatedDate, &inboundOrder.CreatedTime, &inboundOrder.FulfilledDate, &inboundOrder.FulfilledTime, &inboundOrder.Seller)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &inboundOrder, nil
+}
+
+// Endpoints for Buyer Order
+
+// GetBuyerOrder retrieves a buyer order by product ID.
+func GetBuyerOrder(productID int) (*BuyerOrder, error) {
+	var buyerOrder BuyerOrder
+	err := DBBuyer.QueryRow("SELECT * FROM buyer_order WHERE product_id = ?", productID).Scan(&buyerOrder.ProductID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &buyerOrder, nil
+}
+
+// Endpoints for Stockpile
+
+// GetStockPile retrieves a stockpile by product ID.
+func GetStockPile(productID int) (*Stockpile, error) {
+	var stockPile Stockpile
+	err := DBAdmin.QueryRow("SELECT * FROM stockpile WHERE product_id = ?", productID).Scan(&stockPile.ProductID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &stockPile, nil
 }

@@ -18,5 +18,7 @@ func ProductRoutes(router *gin.Engine) {
 		product.GET("/title/:title", controllers.GetProductByTitle)
 
 		product.POST("/create", middleware.CheckSeller(), middleware.FileHandling(), controllers.CreateProduct)
+		product.PUT("/update/:id", middleware.CheckSeller(), controllers.UpdateProduct)
+		product.DELETE("/delete/:id", middleware.CheckSeller(), controllers.DeleteProduct)
 	}
 }
