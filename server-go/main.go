@@ -79,6 +79,7 @@ func main() {
 	})
 
 	routes.AuthRoutes(router)
+	routes.ProductRoutes(router)
 
 	log.Fatal(router.Run(":" + port))
 }

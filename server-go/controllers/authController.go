@@ -158,6 +158,7 @@ func Login(c *gin.Context) {
 		"username":  user.Username,
 		"role":      role,
 		"shop_name": shopName,
+		"city":      user.City,
 	})
 }
 
