@@ -7,9 +7,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/controllers"
-	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/middleware"
 	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/models"
+	"github.com/LaansDole/fullstack-ecommerce-warehouse/server-go/routes"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -67,6 +66,8 @@ func main() {
 		}
 	})
 
+	// Routes Handler
+
 	router.GET("/api/test/buyers", func(c *gin.Context) {
 		buyers, err := models.GetAllBuyers() // use GetAllBuyers function
 		if err != nil {
@@ -77,12 +78,7 @@ func main() {
 		c.JSON(http.StatusOK, buyers)
 	})
 
-	router.POST("/api/auth/register", controllers.Register)
-	router.POST("/api/auth/login", controllers.Login)
-	router.POST("/api/auth/login/whadmin", controllers.LoginAdmin)
-
-	router.Use(middleware.Authentication())
-	router.DELETE("/api/auth/logout", controllers.Logout)
+	routes.AuthRoutes(router)
 
 	log.Fatal(router.Run(":" + port))
 }
