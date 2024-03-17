@@ -112,7 +112,7 @@ CREATE USER IF NOT EXISTS 'isys2099_group9_app_seller_user'@'%'
 GRANT SELECT, INSERT, UPDATE, DELETE ON lazada_user TO 'isys2099_group9_app_seller_user'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON seller TO 'isys2099_group9_app_seller_user'@'%';
 GRANT SELECT ON buyer TO 'isys2099_group9_app_seller_user'@'%';
-GRANT SELECT, UPDATE, DELETE ON product TO 'isys2099_group9_app_seller_user'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON product TO 'isys2099_group9_app_seller_user'@'%';
 GRANT INSERT ON view_product_noid TO 'isys2099_group9_app_seller_user'@'%';
 GRANT SELECT, UPDATE, DELETE ON inbound_order TO 'isys2099_group9_app_seller_user'@'%';
 GRANT INSERT ON view_inbound_order_noid TO 'isys2099_group9_app_seller_user'@'%';
