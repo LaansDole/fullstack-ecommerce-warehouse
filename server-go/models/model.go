@@ -69,6 +69,11 @@ type BuyerOrder struct {
 	Buyer         string `form:"buyer" json:"buyer" binding:"required"`
 }
 
+type ProductCategory struct {
+	CategoryName string `form:"category_name" json:"category_name"`
+	Parent       string `form:"parent" json:"parent"`
+}
+
 // Endpoints for Buyers
 
 func GetBuyer(username string) (*Buyer, error) {
@@ -292,4 +297,19 @@ func GetStockPile(productID int) (*Stockpile, error) {
 		return nil, err
 	}
 	return &stockPile, nil
+}
+
+// Endpoints for Product Category
+
+// GetProductCategoryByName retrieves a product category by its name.
+func GetProductCategoryByName(categoryName string) (*ProductCategory, error) {
+	var category ProductCategory
+	err := DBAdmin.QueryRow("SELECT * FROM product_category WHERE category_name = ?", categoryName).Scan(&category.CategoryName, &category.Parent)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &category, nil
 }
