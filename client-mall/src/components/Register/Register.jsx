@@ -39,11 +39,12 @@ const RegisterComponent = () => {
     if (confirmPassword === password) {
       try {
         if (roles === "buyer") {
-          const response = await postDataAPI("auth/register", {
+          const response = await postDataAPI("http://localhost:3003/api/auth/register", {
             username: username,
             password: password,
             role: roles,
           });
+          console.log(response);
           if (response.status === 200 || response.status === 201) {
             toast.success(`Register Successfully!`);
             // Redirect to the home page
@@ -52,7 +53,7 @@ const RegisterComponent = () => {
             }, 1000);
           }
         } else if (roles === "seller") {
-          const response = await postDataAPI("auth/register", {
+          const response = await postDataAPI("http://localhost:3003/api/auth/register", {
             username: username,
             password: password,
             role: roles,
