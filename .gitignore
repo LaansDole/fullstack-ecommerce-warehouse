@@ -361,3 +361,6 @@ $RECYCLE.BIN/
 # Server uploads
 server/uploads/*
 !server/uploads/mock-data
+
+# Local Netlify folder
+.netlify
