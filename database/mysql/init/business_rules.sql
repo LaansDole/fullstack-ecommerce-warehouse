@@ -187,12 +187,22 @@ DECLARE remaining_product_items_count INT DEFAULT 0;
     -- Check if there is enough space in our warehouses to take in new product items
     SELECT sum(available_volume)
     INTO @total_available_warehouse_volume
-    FROM (SELECT w.volume - coalesce(sum(s.quantity * p.width * p.length * p.height), 0) AS available_volume
-          FROM warehouse w
-              LEFT JOIN stockpile s ON s.warehouse_id = w.id
-              LEFT JOIN product p ON s.product_id = p.id
-          WHERE w.city = seller_city
-          GROUP BY w.id) AS warehouse_available_volume;
+    FROM (
+        SELECT w.volume - coalesce(sum(s.quantity * p.width * p.length * p.height), 0) AS available_volume
+        FROM warehouse w
+            LEFT JOIN stockpile s ON s.warehouse_id = w.id
+            LEFT JOIN product p ON s.product_id = p.id
+        WHERE w.city = seller_city
+        GROUP BY w.id
+    
+        UNION ALL
+    
+        SELECT w.volume - coalesce(sum(s.quantity * p.width * p.length * p.height), 0) AS available_volume
+        FROM warehouse w
+            LEFT JOIN stockpile s ON s.warehouse_id = w.id
+            LEFT JOIN product p ON s.product_id = p.id
+        GROUP BY w.id
+    ) AS warehouse_available_volume;
 
     SELECT o.quantity * p.width * p.length * p.height
     INTO @order_volume
@@ -215,15 +225,29 @@ DECLARE remaining_product_items_count INT DEFAULT 0;
         DO
             SELECT warehouse_id, available_volume
             INTO @best_warehouse_id, @best_warehouse_available_volume
-            FROM (SELECT w.id                                                                    AS warehouse_id,
-                         w.volume - coalesce(sum(s.quantity * p.width * p.length * p.height), 0) AS available_volume
-                  FROM stockpile s
-                      LEFT JOIN warehouse w ON s.warehouse_id = w.id
-                      LEFT JOIN product p on s.product_id = p.id
-                  WHERE w.city = seller_city
-                  GROUP BY w.id
-                  ORDER BY available_volume DESC
-                  LIMIT 1) best_warehouse;
+            FROM (
+                SELECT w.id AS warehouse_id,
+                       w.volume - coalesce(sum(s.quantity * p.width * p.length * p.height), 0) AS available_volume
+                FROM stockpile s
+                LEFT JOIN warehouse w ON s.warehouse_id = w.id
+                LEFT JOIN product p on s.product_id = p.id
+                WHERE w.city = seller_city
+                GROUP BY w.id
+                ORDER BY available_volume DESC
+                LIMIT 1
+            
+                UNION ALL
+            
+                SELECT w.id AS warehouse_id,
+                       w.volume - coalesce(sum(s.quantity * p.width * p.length * p.height), 0) AS available_volume
+                FROM stockpile s
+                LEFT JOIN warehouse w ON s.warehouse_id = w.id
+                LEFT JOIN product p on s.product_id = p.id
+                GROUP BY w.id
+                ORDER BY available_volume DESC
+                LIMIT 1
+            ) best_warehouse
+            LIMIT 1;
 
             SET product_items_fill_count = least(@best_warehouse_available_volume DIV @product_unit_volume, remaining_product_items_count);
 
