@@ -5,13 +5,6 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  build: {
-    rollupOptions: {
-      external: [
-        "axios", // ignore react stuff
-      ],
-    }
-  },
   server: {
     port: 3002,
   },
