@@ -39,9 +39,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const SERVER_PORT = process.env.SERVER_PORT;
 const CORS_WHITELIST = [
-  `http://localhost:${process.env.SERVER_PORT}`,
-  `http://localhost:${process.env.CLIENT_MALL_PORT}`,
-  `http://localhost:${process.env.CLIENT_WHADMIN_PORT}`,
+  `http://54.221.78.71:${process.env.SERVER_PORT}`,
+  `http://18.208.84.219:${process.env.CLIENT_MALL_PORT}`,
+  `http://34.226.8.30:${process.env.CLIENT_WHADMIN_PORT}`,
 ];
 
 app.use(

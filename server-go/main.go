@@ -42,9 +42,9 @@ func main() {
 
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{
-		fmt.Sprintf("http://localhost:%s", os.Getenv("SERVER_PORT")),
-		fmt.Sprintf("http://localhost:%s", os.Getenv("CLIENT_MALL_PORT")),
-		fmt.Sprintf("http://localhost:%s", os.Getenv("CLIENT_WHADMIN_PORT")),
+		fmt.Sprintf("http://54.145.255.207:%s", os.Getenv("SERVER_PORT")),
+		fmt.Sprintf("http://18.208.84.219:%s", os.Getenv("CLIENT_MALL_PORT")),
+		fmt.Sprintf("http://34.226.8.30:%s", os.Getenv("CLIENT_WHADMIN_PORT")),
 	}
 	config.AllowCredentials = true // allow credentials
 	router.Use(cors.New(config))

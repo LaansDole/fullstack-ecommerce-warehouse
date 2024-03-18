@@ -133,7 +133,7 @@ npm clean-install
    cd server
    npm run start
    ```
-   This will start the API server listening at [http://localhost:3000/](http://localhost:3000/)
+   This will start the API server listening at [http://54.221.78.71/](http://54.221.78.71/)
 4. Start Mall frontend:
    ```bash
    cd client-mall

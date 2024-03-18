@@ -118,9 +118,9 @@ const createProduct = async (req, res) => {
       return res.status(404).json({ error: "Image not found" });
     }
     // eslint-disable-next-line no-undef
-    const basePath = `http://localhost:${process.env.SERVER_PORT}/uploads/`;
+    const basePath = `http://54.221.78.71:${process.env.SERVER_PORT}/uploads/`;
     // `${basePath}${fileName}` will return the image that is stored in the server
-    const image = `${basePath}${fileName}`; // For example: "http://localhost:3000/server/uploads/<image>"
+    const image = `${basePath}${fileName}`; // For example: "http://54.221.78.71/server/uploads/<image>"
 
     console.log(image);
 
