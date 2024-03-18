@@ -23,6 +23,14 @@ async function promptUser() {
   });
 }
 
+async function promptHost() {
+  return new Promise(resolve => {
+    stdin.question("Enter MySQL host: ", host => {
+      resolve(host);
+    });
+  });
+}
+
 /**
  * Establishes a connection and sets the MySQL server's global validation policy to 0, in case MySQL has been set up
  * with the validate_password plugin, which would be troublesome for when we want to grant privileges to users.
@@ -64,10 +72,11 @@ async function executeSetupScript(connection, scriptPath) {
   try {
     const user = await promptUser();
     const password = await promptPassword(user);
+    const host = await promptHost();
 
     const connection = await mysql.createConnection({
       user: user,
-      host: "localhost",
+      host: host ? host : 'localhost',
       password: password,
       multipleStatements: true,
     });
@@ -117,4 +126,4 @@ async function executeSetupScript(connection, scriptPath) {
   } finally {
     stdin.close(); // Close the readline interface
   }
-})().then(() => {});
+})().then(() => { });
