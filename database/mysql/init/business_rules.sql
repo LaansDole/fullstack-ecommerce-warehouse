@@ -213,17 +213,34 @@ DECLARE remaining_product_items_count INT DEFAULT 0;
 
     WHILE remaining_product_items_count > 0
         DO
-            SELECT warehouse_id, available_volume
-            INTO @best_warehouse_id, @best_warehouse_available_volume
-            FROM (SELECT w.id                                                                    AS warehouse_id,
-                         w.volume - coalesce(sum(s.quantity * p.width * p.length * p.height), 0) AS available_volume
-                  FROM stockpile s
-                      LEFT JOIN warehouse w ON s.warehouse_id = w.id
-                      LEFT JOIN product p on s.product_id = p.id
-                  WHERE w.city = seller_city
-                  GROUP BY w.id
-                  ORDER BY available_volume DESC
-                  LIMIT 1) best_warehouse;
+            IF seller_city IS NOT NULL THEN
+                SELECT warehouse_id, available_volume
+                INTO @best_warehouse_id, @best_warehouse_available_volume
+                FROM (
+                    SELECT w.id AS warehouse_id,
+                        w.volume - coalesce(sum(s.quantity * p.width * p.length * p.height), 0) AS available_volume
+                    FROM stockpile s
+                    LEFT JOIN warehouse w ON s.warehouse_id = w.id
+                    LEFT JOIN product p on s.product_id = p.id
+                    WHERE w.city = seller_city
+                    GROUP BY w.id
+                    ORDER BY available_volume DESC
+                    LIMIT 1
+                ) best_warehouse;
+            ELSE
+                SELECT warehouse_id, available_volume
+                INTO @best_warehouse_id, @best_warehouse_available_volume
+                FROM (
+                    SELECT w.id AS warehouse_id,
+                        w.volume - coalesce(sum(s.quantity * p.width * p.length * p.height), 0) AS available_volume
+                    FROM stockpile s
+                    LEFT JOIN warehouse w ON s.warehouse_id = w.id
+                    LEFT JOIN product p on s.product_id = p.id
+                    GROUP BY w.id
+                    ORDER BY available_volume DESC
+                    LIMIT 1
+                ) best_warehouse;
+            END IF;
 
             SET product_items_fill_count = least(@best_warehouse_available_volume DIV @product_unit_volume, remaining_product_items_count);
 
